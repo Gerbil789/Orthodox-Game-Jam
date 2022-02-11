@@ -5,78 +5,67 @@ using UnityEngine.UI;
 
 public class Unit : MonoBehaviour
 {
-    public bool enemy = true;
+    public bool enemy;
 
-    public int health;
-    public int attackDamage;
-    public int armor;
-    public int speed;
+    public int health = 50;
+    public int attackDamage = 10;
+    public int armor = 5;
+    public int speed = 5; // how many tiles can unit move
     public int initiative = 5;
 
-    public Vector3Int pos;
-    Vector3 dirNormalized = Vector3.zero;
+    [SerializeField] float movementSpeed = 1f; // how fast can unit move
     [SerializeField] Transform unitBody;
+
+    
+    Vector3 dirNormalized = Vector3.zero;
     Vector3 dir = Vector3.zero;
-    public Vector3Int target; 
-    public Tile attackTarget;
     Stack<Vector3Int> path;
-    [SerializeField] float movementSpeed = 1f;
-    public bool moving = false;
+
+    [Header("Debug:")]
+    [SerializeField] bool moving = false;
+    public Vector3Int pos;
+    public Vector3Int destination; 
 
    
-    void Update()
-    {
+    void Update(){
         if(moving){
             if(path.Count > 0){
-            
-                target = path.Peek();
-                dir = (target - transform.position);
+                destination = path.Peek();
+                dir = (destination - transform.position);
                 dirNormalized = dir.normalized;
                 unitBody.transform.rotation = Quaternion.Slerp (unitBody.transform.rotation, Quaternion.LookRotation (dir), Time.deltaTime * 40f);
             
-                if(Vector3.Distance(target, transform.position) <= 0.03f){
-                    target = path.Pop();  
+                if(Vector3.Distance(destination, transform.position) <= 0.02f){
+                    destination = path.Pop();  
                 }else{
                     transform.Translate(dirNormalized * Time.deltaTime * movementSpeed, Space.Self);
                 }
             }else{
                 moving = false;
-                
-                Pathfinding.instance.GetTile(pos).unit = null;
+                Pathfinding.Instance.GetTile(pos).unit = null;
                 pos = Vector3Int.RoundToInt(transform.localPosition);
                 transform.localPosition = pos;
-                Pathfinding.instance.GetTile(pos).unit = this;
-                
-                Pathfinding.instance.DisableAllTiles(true);
-                if(attackTarget != null){
-                    attackTarget.unit.TakeDamage(attackDamage);
-                }
-                GameManager.Instance.UpdateGameState(GameState.PlayerTurn);
-                
+                Pathfinding.Instance.GetTile(pos).unit = this;    
+                BattleManager.Instance.UpdateBattleState(BattleState.PlayerTurn);    
             }  
-
         } 
     }
 
-    public void Move(Vector3Int _target, Tile _attackTarget){
-        target = _target;
-        attackTarget = _attackTarget;
-        path = new Stack<Vector3Int>(Pathfinding.instance.GetPath(target));
-        Pathfinding.instance.DisableAllTiles(false);
+    public void Move(Vector3Int _destination){
+        //this.destination = destination;
+        path = new Stack<Vector3Int>(Pathfinding.Instance.GetPath(_destination));
         moving = true;
-        Pathfinding.instance.RemoveLine();
-        GameManager.Instance.UpdateGameState(GameState.Action);
-        
     }
 
     public void TakeDamage(int damage){
-        health -= damage;
-        if(health <= 0){
-            Pathfinding.instance.GetTile(pos).unit = null;
-            Destroy(gameObject);
+        damage -= armor;
+        if(damage > 0){
+            health -= damage;
+            if(health <= 0){
+                Pathfinding.Instance.GetTile(pos).unit = null;
+                Debug.Log(gameObject.name + " was destroyed.");
+                Destroy(gameObject);
+            }
         }
     }
-
-
-
 }

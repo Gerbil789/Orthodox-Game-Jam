@@ -5,33 +5,19 @@ using System.Linq;
 
 public class Pathfinding : MonoBehaviour
 {
-    public static Pathfinding instance;
-
+    public static Pathfinding Instance;
     public Vector3Int start, goal;
-    public int speed;
     public Transform tilesObject;
-    Stack<Vector3Int> path;
     HashSet<Tile> openList;
     HashSet<Tile> closedList;
-    Dictionary<Vector3Int, Tile> tiles = new Dictionary<Vector3Int, Tile>();
-    LineRenderer lineRenderer;
+    public Dictionary<Vector3Int, Tile> tiles = new Dictionary<Vector3Int, Tile>();
 
     private void Awake() {
-        instance = this;
-        foreach (Transform t in tilesObject)
-        {
+        Instance = this;
+        foreach (Transform t in tilesObject){
             Tile tile = t.GetComponent<Tile>();
-            if(tile.isActiveAndEnabled){
-                tiles.Add(tile.pos, tile);
-            }
-            
+            tiles.Add(tile.pos, tile);  
         } 
-    }
-
-    void Start()
-    {
-        
-        lineRenderer = GetComponent<LineRenderer>();
     }
 
     public Tile GetTile(Vector3Int pos){
@@ -41,19 +27,15 @@ public class Pathfinding : MonoBehaviour
         return null;
     }
 
-    public Stack<Vector3Int> GetPath(Vector3Int _goal){
-        if(_goal == start){
+    public Stack<Vector3Int> GetPath(Vector3Int goal){
+        if(goal == start){
             return null;
         }
-
-        goal = _goal;
-
-
-        Tile current;
-        current = GetTile(start);
+        this.goal = goal;
+        Tile current = GetTile(start);
         openList = new HashSet<Tile>();
         closedList = new HashSet<Tile>();
-        path = null;
+        Stack<Vector3Int> path = null;
         openList.Add(current);
 
         while(path == null){
@@ -71,7 +53,6 @@ public class Pathfinding : MonoBehaviour
             while(reversePath.Count > 0){
                 path.Push(reversePath.Pop());
             }
-            DrawLine();
             return path;
             }
         }
@@ -89,7 +70,6 @@ public class Pathfinding : MonoBehaviour
                         if(tiles.ContainsKey(neighborPos)){
                             Tile t = GetTile(neighborPos);
                             neighbors.Add(t);
-                            
                         }
                     }   
                 }
@@ -100,9 +80,6 @@ public class Pathfinding : MonoBehaviour
 
     void ExamineNeighbours(List<Tile> neighbours, Tile current){
         for(int i = 0; i < neighbours.Count; i++){
-            if(neighbours[i].unit != null){
-                continue;
-            }
             Tile neighbour = neighbours[i];
             int gScore = DetermineGScore(neighbours[i].pos, current.pos);
             if(openList.Contains(neighbour)){
@@ -138,35 +115,17 @@ public class Pathfinding : MonoBehaviour
     void UpdateCurrentTile(ref Tile current){
         openList.Remove(current);
         closedList.Add(current);
-
         if(openList.Count > 0){
             current = openList.OrderBy(x => x.F).First();
         }
     }
 
-    void DrawLine(){
-        lineRenderer.positionCount = 0;
-        Stack<Vector3Int> linePoints = new Stack<Vector3Int>(path);
-        lineRenderer.positionCount = linePoints.Count;
-        int count = linePoints.Count;
-        for(int i = 0; i < count; i++){
-            lineRenderer.SetPosition(i, linePoints.Pop() + new Vector3(0f, 0.1f, 0f));
-        }
-    }
 
-    public void RemoveLine(){
-        lineRenderer.positionCount = 0;
-    }
-
-
-
-    public void GetAvailableTiles(int _speed, Vector3Int _start){
-        setAllTiles(false);
+    public List<Tile> GetAvailableTiles(int speed, Vector3Int start){
         foreach(var t in tiles.Values){
             t.G = 0;
         }
-        start = _start;
-        speed = _speed;
+        this.start = start;
         List<Tile> availableTiles = new List<Tile>();
         availableTiles.Add(GetTile(start));
         int i = 0;
@@ -192,38 +151,6 @@ public class Pathfinding : MonoBehaviour
             i++;
         }
         availableTiles.Remove(GetTile(start));
-        
-        
-        foreach (Tile t in availableTiles){
-            
-            t.inRange = true;
-            if(t.unit == null){
-                t.LightGreen();
-            }else{
-                t.DarkGreen();
-            }
-
-             
-        }  
-        
-    }
-
-
-    void setAllTiles(bool a){
-        foreach (var t in tiles.Values)
-        {
-            t.inRange = a;
-            t.DarkGreen();
-        }
-    }
-
-    public void DisableAllTiles(bool active){
-        //tilesObject.gameObject.SetActive(active);
-
-        foreach (var t in tiles.Values)
-        {
-            
-            t.DarkGreen();
-        }
+        return availableTiles;
     }
 }

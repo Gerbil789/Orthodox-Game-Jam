@@ -4,47 +4,38 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    [SerializeField] Color darkGreen;
-    [SerializeField] Color lightGreen;
-    [SerializeField] Color yellow;
-    [SerializeField] Color red;
-
-    public bool inRange = false;
-    public Unit unit = null;
     public Vector3Int pos;
-    MeshRenderer meshRenderer;
+    public Unit unit = null;
+    MeshRenderer outline;
+    MeshRenderer fill;
 
     public int G {get; set;}
     public int H {get; set;}
     public int F {get; set;}
     public Tile parent {get; set;}
 
-    void Awake()
-    {
-        meshRenderer = GetComponent<MeshRenderer>();
-        pos = Vector3Int.RoundToInt(transform.localPosition);
-        SetColor(darkGreen);
+    public Color outlineColor;
+    public Color fillColor;
+
+    void Awake(){
+        MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
+        outline = renderers[0];
+        fill = renderers[1];
+        pos = Vector3Int.RoundToInt(transform.localPosition);  
     }
 
-    public void SetColor(Color col){
-        meshRenderer.material.color = col;
+    public void SetOutlineColor(Color col, float alpha){
+        col.a = alpha;
+        outline.material.color = col;
     }
 
-    public void DarkGreen(){
-        SetColor(darkGreen);
+    public void SetFillColor(Color col, float alpha){   
+        col.a = alpha;
+        fill.material.color = col;
     }
 
-    public void LightGreen(){
-        SetColor(lightGreen);
-        
-    }
-
-    public void Red(){
-        SetColor(red);
-    }
-
-    public void Yellow(){
-        SetColor(yellow);
-        
+    public void SetPreviousColor(){
+        outline.material.color = outlineColor;
+        fill.material.color = fillColor;
     }
 }
