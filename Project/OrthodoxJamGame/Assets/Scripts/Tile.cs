@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public bool active;
     public Vector3Int pos;
     public Unit unit = null;
     MeshRenderer outline;

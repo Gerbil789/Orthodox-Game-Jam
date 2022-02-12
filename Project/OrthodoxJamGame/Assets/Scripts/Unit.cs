@@ -19,7 +19,7 @@ public class Unit : MonoBehaviour
     
     Vector3 dirNormalized = Vector3.zero;
     Vector3 dir = Vector3.zero;
-    Stack<Vector3Int> path;
+    public Stack<Vector3Int> path;
 
     [Header("Debug:")]
     [SerializeField] bool moving = false;
@@ -51,9 +51,13 @@ public class Unit : MonoBehaviour
         } 
     }
 
-    public void Move(Vector3Int _destination){
-        //this.destination = destination;
-        path = new Stack<Vector3Int>(Pathfinding.Instance.GetPath(_destination));
+    public void Move(Vector3Int dest){
+        if(dest == pos){
+            Debug.Log("Attack without moving");
+            BattleManager.Instance.UpdateBattleState(BattleState.PlayerTurn);  
+            return;
+        }
+        path = new Stack<Vector3Int>(Pathfinding.Instance.GetPath(pos, dest));
         moving = true;
     }
 

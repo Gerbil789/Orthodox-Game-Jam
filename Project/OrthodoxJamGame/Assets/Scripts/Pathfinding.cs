@@ -11,12 +11,18 @@ public class Pathfinding : MonoBehaviour
     HashSet<Tile> openList;
     HashSet<Tile> closedList;
     public Dictionary<Vector3Int, Tile> tiles = new Dictionary<Vector3Int, Tile>();
+    public Dictionary<Vector3Int, Tile> inactiveTiles = new Dictionary<Vector3Int, Tile>();
 
     private void Awake() {
         Instance = this;
         foreach (Transform t in tilesObject){
             Tile tile = t.GetComponent<Tile>();
-            tiles.Add(tile.pos, tile);  
+            if(tile.active){
+                tiles.Add(tile.pos, tile); 
+            }else{
+                inactiveTiles.Add(tile.pos, tile);
+            }
+             
         } 
     }
 
@@ -27,10 +33,11 @@ public class Pathfinding : MonoBehaviour
         return null;
     }
 
-    public Stack<Vector3Int> GetPath(Vector3Int goal){
+    public Stack<Vector3Int> GetPath(Vector3Int start, Vector3Int goal){
         if(goal == start){
             return null;
         }
+        this.start = start;
         this.goal = goal;
         Tile current = GetTile(start);
         openList = new HashSet<Tile>();
@@ -120,7 +127,7 @@ public class Pathfinding : MonoBehaviour
         }
     }
 
-
+    //find all tiles unit can move to
     public List<Tile> GetAvailableTiles(int speed, Vector3Int start){
         foreach(var t in tiles.Values){
             t.G = 0;
